@@ -199,6 +199,11 @@ export class MySQLDatabase {
      * @param {MySQLTable} table - The table to add.
      */
     addTable(table: MySQLTable): void;
+    /**
+     * Get all table names in the database
+     * @returns {string[]} An array of table names
+     */
+    getTableNames(): string[];
 }
 export class MySQLTable {
     /**
@@ -242,6 +247,11 @@ export class MySQLTable {
         collation?: string;
         comment?: string;
     }): string;
+    /**
+     * Gets an array of column names in the table
+     * @returns {string[]}
+     */
+    getColumnNames(): string[];
     #private;
 }
 /**

@@ -456,6 +456,14 @@ export class MySQLDatabase {
     addTable(table) {
         this.tables.set(table.tableName, table);
     }
+
+    /**
+     * Get all table names in the database
+     * @returns {string[]} An array of table names
+     */
+    getTableNames() {
+        return Array.from(this.tables.keys());
+    }
 }
 
 export class MySQLTable {
@@ -641,6 +649,14 @@ export class MySQLTable {
      */
     #escapeString(str) {
         return str.replace(/'/g, "''").replace(/\\/g, "\\\\");
+    }
+
+    /**
+     * Gets an array of column names in the table
+     * @returns {string[]}
+     */
+    getColumnNames() {
+        return Array.from(this.columns.keys());
     }
 }
 

@@ -296,6 +296,13 @@ var MySQLDatabase = class {
   addTable(table) {
     this.tables.set(table.tableName, table);
   }
+  /**
+   * Get all table names in the database
+   * @returns {string[]} An array of table names
+   */
+  getTableNames() {
+    return Array.from(this.tables.keys());
+  }
 };
 var MySQLTable = class {
   /** @type {string} */
@@ -437,6 +444,13 @@ var MySQLTable = class {
    */
   #escapeString(str) {
     return str.replace(/'/g, "''").replace(/\\/g, "\\\\");
+  }
+  /**
+   * Gets an array of column names in the table
+   * @returns {string[]}
+   */
+  getColumnNames() {
+    return Array.from(this.columns.keys());
   }
 };
 function parseMySQLSchema(schema) {
