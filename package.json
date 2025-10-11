@@ -1,6 +1,6 @@
 {
   "name": "@supercat1337/mysql-schema-parser",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A library for parsing and working with MySQL database schema metadata.",
   "license": "MIT",
   "author": "Supercat1337",
@@ -31,7 +31,6 @@
   "mysql-metadata"
 ],
   "scripts": {
-    "preinstall": "npm i -g esbuild && npm i -g rollup",
     "build": "npm run remove_type_files && npm run build_esm && npm run build_bundle_esm && npm run build_bundle_esm_min && npm run create_types",
     "build_bundle_esm_min": "esbuild --minify --bundle --platform=neutral --legal-comments=none ./src/index.js --outfile=./dist/mysql-schema-parser.bundle.esm.min.js",
     "build_bundle_esm": "esbuild --bundle --platform=neutral --legal-comments=none ./src/index.js --outfile=./dist/mysql-schema-parser.bundle.esm.js",
