@@ -1,15 +1,12 @@
 {
     "compilerOptions": {
-      "baseUrl": ".",
-      "target": "ESNext",
-      "module": "NodeNext",
-      "noEmit": true,
-      "lib": [
-          "DOM",
-          "ES2020"
-        ],
-        "moduleResolution": "NodeNext"
+        "target": "ESNext",
+        "module": "NodeNext",
+        "noEmit": true,
+        "lib": ["DOM", "ES2020"],
+        "moduleResolution": "NodeNext",
+        "checkJs": true
     },
     "exclude": ["dist/*"],
-    "include": ["src/index.js", "node_modules/*", "src/**/*.d.ts"]
+    "include": ["**/*", "index.d.ts"]
 }

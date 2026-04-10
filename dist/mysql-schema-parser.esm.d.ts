@@ -1,192 +1,73 @@
-/**
- * Database column metadata object describing a table column's structure
- */
-export type ColumnMetadataRaw = {
-    /**
-     * Table catalog (typically 'def' in MySQL)
-     */
+// 1. Обязательно добавляем export, чтобы файл стал модулем.
+// Это позволит использовать блок 'declare global'.
+export interface ColumnMetadataRaw {
     TABLE_CATALOG: string;
-    /**
-     * Database/schema name containing the table
-     */
     TABLE_SCHEMA: string;
-    /**
-     * Name of the table
-     */
     TABLE_NAME: string;
-    /**
-     * Name of the column
-     */
     COLUMN_NAME: string;
-    /**
-     * Column position in table (1-based index)
-     */
     ORDINAL_POSITION: number;
-    /**
-     * Default value for the column
-     */
     COLUMN_DEFAULT: string | null;
-    /**
-     * Whether the column is nullable
-     */
-    IS_NULLABLE: "YES" | "NO";
-    /**
-     * Column's data type (e.g., 'int', 'varchar')
-     */
+    IS_NULLABLE: 'YES' | 'NO';
     DATA_TYPE: string;
-    /**
-     * Maximum length for string types (in characters)
-     */
     CHARACTER_MAXIMUM_LENGTH: number | null;
-    /**
-     * Maximum length for string types (in bytes)
-     */
     CHARACTER_OCTET_LENGTH: number | null;
-    /**
-     * Precision for numeric types
-     */
     NUMERIC_PRECISION: number | null;
-    /**
-     * Scale for numeric types
-     */
     NUMERIC_SCALE: number | null;
-    /**
-     * Precision for datetime types
-     */
     DATETIME_PRECISION: number | null;
-    /**
-     * Character set for string types
-     */
     CHARACTER_SET_NAME: string | null;
-    /**
-     * Collation for string types
-     */
     COLLATION_NAME: string | null;
-    /**
-     * Full column type description (e.g., 'int(10) unsigned')
-     */
     COLUMN_TYPE: string;
-    /**
-     * Column index type (PRI=primary key, UNI=unique, etc.)
-     */
-    COLUMN_KEY: "PRI" | "UNI" | "MUL" | "";
-    /**
-     * Additional information (e.g., 'auto_increment')
-     */
+    COLUMN_KEY: 'PRI' | 'UNI' | 'MUL' | '';
     EXTRA: string;
-    /**
-     * Comma-separated column privileges
-     */
     PRIVILEGES: string;
-    /**
-     * Column comment
-     */
     COLUMN_COMMENT: string;
-    /**
-     * Whether column value is generated
-     */
-    IS_GENERATED: "NEVER" | "ALWAYS" | string;
-    /**
-     * Expression for generated columns
-     */
+    IS_GENERATED: 'NEVER' | 'ALWAYS' | string;
     GENERATION_EXPRESSION: string | null;
-};
-export type ColumnMetadataParams = {
-    /**
-     * - Table catalog (usually 'def')
-     */
+}
+
+export interface ColumnMetadataParams {
     tableCatalog: string;
-    /**
-     * - Database/schema name
-     */
     tableSchema: string;
-    /**
-     * - Table name
-     */
     tableName: string;
-    /**
-     * - Column name
-     */
     columnName: string;
-    /**
-     * - Position in table (1-based)
-     */
     ordinalPosition: number;
-    /**
-     * - Default value
-     */
     columnDefault: string | null;
-    /**
-     * - Nullable status
-     */
-    isNullable: "YES" | "NO";
-    /**
-     * - Data type (e.g. 'int', 'varchar')
-     */
+    isNullable: 'YES' | 'NO';
     dataType: string;
-    /**
-     * - Max length for string types (characters)
-     */
     characterMaximumLength: number | null;
-    /**
-     * - Max length for string types (bytes)
-     */
     characterOctetLength: number | null;
-    /**
-     * - Precision for numeric types
-     */
     numericPrecision: number | null;
-    /**
-     * - Scale for numeric types
-     */
     numericScale: number | null;
-    /**
-     * - Precision for datetime types
-     */
     datetimePrecision: number | null;
-    /**
-     * - Character set for string types
-     */
     characterSetName: string | null;
-    /**
-     * - Collation for string types
-     */
     collationName: string | null;
-    /**
-     * - Full column type (e.g. 'int(11) unsigned')
-     */
     columnType: string;
-    /**
-     * - Key type (primary/unique/etc.)
-     */
-    columnKey: "PRI" | "UNI" | "MUL" | "";
-    /**
-     * - Extra information (e.g. 'auto_increment')
-     */
+    columnKey: 'PRI' | 'UNI' | 'MUL' | '';
     extra: string;
-    /**
-     * - Column privileges
-     */
     privileges: string;
-    /**
-     * - Column comment
-     */
     columnComment: string;
-    /**
-     * - Generation status
-     */
-    isGenerated: "NEVER" | "ALWAYS" | string;
-    /**
-     * - Generation expression
-     */
+    isGenerated: 'NEVER' | 'ALWAYS' | string;
     generationExpression: string | null;
-};
+}
+
+// 2. Теперь блок declare global сработает без ошибок TS2669
+declare global {
+    // Мы объявляем эти интерфейсы в глобальной области, 
+    // чтобы JS-файлы в src/ видели их без импортов.
+    interface ColumnMetadataRaw extends _ColumnMetadataRaw {}
+    interface ColumnMetadataParams extends _ColumnMetadataParams {}
+}
+
+// Технический алиас, чтобы избежать прямой рекурсии в declare global
+type _ColumnMetadataRaw = ColumnMetadataRaw;
+type _ColumnMetadataParams = ColumnMetadataParams;
+
+/* From MySQLDatabase.d.ts */
 export class MySQLDatabase {
     /**
      * Creates an instance of MySQLDatabase.
-     *
      * @param {string} databaseName - The name of the database.
-     * @param {ColumnMetadataRaw[]} [cols=[]] - An array of table objects with table name and columns metadata.
+     * @param {ColumnMetadataRaw[]} [cols=[]] - Array of raw column metadata.
      */
     constructor(databaseName: string, cols?: ColumnMetadataRaw[]);
     /** @type {string} */
@@ -195,7 +76,6 @@ export class MySQLDatabase {
     tables: Map<string, MySQLTable>;
     /**
      * Adds a table to the database.
-     *
      * @param {MySQLTable} table - The table to add.
      */
     addTable(table: MySQLTable): void;
@@ -204,7 +84,14 @@ export class MySQLDatabase {
      * @returns {string[]} An array of table names
      */
     getTableNames(): string[];
+    /**
+     * Returns JSON representation of the whole database
+     * @returns {Object}
+     */
+    toJSON(): any;
 }
+
+/* From MySQLTable.d.ts */
 export class MySQLTable {
     /**
      * Creates MySQLTable instance from table name and columns data
@@ -222,7 +109,7 @@ export class MySQLTable {
      */
     addColumn(column: MySQLTableColumn): void;
     /**
-     * Get all columns in table
+     * Get all columns in table, sorted by ordinal position
      * @returns {MySQLTableColumn[]}
      */
     getColumns(): MySQLTableColumn[];
@@ -252,8 +139,14 @@ export class MySQLTable {
      * @returns {string[]}
      */
     getColumnNames(): string[];
-    #private;
+    /**
+     * Returns JSON representation of the table
+     * @returns {Object}
+     */
+    toJSON(): any;
 }
+
+/* From MySQLTableColumn.d.ts */
 /**
  * Class representing normalized database column metadata
  */
@@ -263,115 +156,49 @@ export class MySQLTableColumn {
      * @param {ColumnMetadataParams} [data]
      */
     constructor(data?: ColumnMetadataParams);
-    /**
-     * Table catalog (typically 'def' in MySQL)
-     * @type {string}
-     */
+    /** @type {string} */
     tableCatalog: string;
-    /**
-     * Database/schema name containing the table
-     * @type {string}
-     */
+    /** @type {string} */
     tableSchema: string;
-    /**
-     * Name of the table
-     * @type {string}
-     */
+    /** @type {string} */
     tableName: string;
-    /**
-     * Name of the column
-     *  @type {string}
-     */
+    /** @type {string} */
     columnName: string;
-    /**
-     * Column position in table (1-based index)
-     * @type {number}
-     */
+    /** @type {number} */
     ordinalPosition: number;
-    /**
-     * Default value for the column
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     columnDefault: string | null;
-    /**
-     * Whether the column is nullable
-     * @type {'YES'|'NO'}
-     */
+    /** @type {'YES'|'NO'} */
     isNullable: "YES" | "NO";
-    /**
-     * Column's data type (e.g., 'int', 'varchar')
-     * @type {string}
-     */
+    /** @type {string} */
     dataType: string;
-    /**
-     * Maximum length for string types (in characters)
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     characterMaximumLength: number | null;
-    /**
-     * Maximum length for string types (in bytes)
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     characterOctetLength: number | null;
-    /**
-     * Precision for numeric types
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     numericPrecision: number | null;
-    /**
-     * Scale for numeric types
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     numericScale: number | null;
-    /**
-     * Precision for datetime types
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     datetimePrecision: number | null;
-    /**
-     * Character set for string types
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     characterSetName: string | null;
-    /**
-     * Collation for string types
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     collationName: string | null;
-    /**
-     * Full column type description (e.g., 'int(10) unsigned')
-     * @type {string}
-     */
+    /** @type {string} */
     columnType: string;
-    /**
-     * Column index type (PRI=primary key, UNI=unique, etc.)
-     * @type {'PRI'|'UNI'|'MUL'|''}
-     */
+    /** @type {'PRI'|'UNI'|'MUL'|''} */
     columnKey: "PRI" | "UNI" | "MUL" | "";
-    /**
-     * Additional information (e.g., 'auto_increment')
-     * @type {string}
-     */
+    /** @type {string} */
     extra: string;
-    /**
-     * Comma-separated column privileges
-     * @type {string}
-     */
+    /** @type {string} */
     privileges: string;
-    /**
-     * Column comment
-     * @type {string}
-     */
+    /** @type {string} */
     columnComment: string;
-    /**
-     * Whether column value is generated
-     * @type {'NEVER'|'ALWAYS'|string}
-     */
+    /** @type {'NEVER'|'ALWAYS'|string} */
     isGenerated: "NEVER" | "ALWAYS" | string;
-    /**
-     * Expression for generated columns
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     generationExpression: string | null;
     /**
      * Import raw metadata into this object
@@ -394,7 +221,7 @@ export class MySQLTableColumn {
      */
     isAutoIncrement(): boolean;
     /**
-     * Get full column definition as string
+     * Get full column definition as string (without PRIMARY KEY constraint)
      * @returns {string}
      */
     getColumnDefinition(): string;
@@ -404,57 +231,17 @@ export class MySQLTableColumn {
      */
     toJSON(): ColumnMetadataParams;
 }
+
+/* From parseMySQLSchema.d.ts */
 /**
- * Database column metadata object describing a table column's structure
- * @typedef {Object} ColumnMetadataRaw
- * @property {string} TABLE_CATALOG Table catalog (typically 'def' in MySQL)
- * @property {string} TABLE_SCHEMA Database/schema name containing the table
- * @property {string} TABLE_NAME Name of the table
- * @property {string} COLUMN_NAME Name of the column
- * @property {number} ORDINAL_POSITION Column position in table (1-based index)
- * @property {string|null} COLUMN_DEFAULT Default value for the column
- * @property {'YES'|'NO'} IS_NULLABLE Whether the column is nullable
- * @property {string} DATA_TYPE Column's data type (e.g., 'int', 'varchar')
- * @property {number|null} CHARACTER_MAXIMUM_LENGTH Maximum length for string types (in characters)
- * @property {number|null} CHARACTER_OCTET_LENGTH Maximum length for string types (in bytes)
- * @property {number|null} NUMERIC_PRECISION Precision for numeric types
- * @property {number|null} NUMERIC_SCALE Scale for numeric types
- * @property {number|null} DATETIME_PRECISION Precision for datetime types
- * @property {string|null} CHARACTER_SET_NAME Character set for string types
- * @property {string|null} COLLATION_NAME Collation for string types
- * @property {string} COLUMN_TYPE Full column type description (e.g., 'int(10) unsigned')
- * @property {'PRI'|'UNI'|'MUL'|''} COLUMN_KEY Column index type (PRI=primary key, UNI=unique, etc.)
- * @property {string} EXTRA Additional information (e.g., 'auto_increment')
- * @property {string} PRIVILEGES Comma-separated column privileges
- * @property {string} COLUMN_COMMENT Column comment
- * @property {'NEVER'|'ALWAYS'|string} IS_GENERATED Whether column value is generated
- * @property {string|null} GENERATION_EXPRESSION Expression for generated columns
+ * Parses a MySQL schema definition into a structured representation.
+ * @param {ColumnMetadataRaw[]} schema - MySQL schema metadata array.
+ * @returns {MySQLDatabase} Structured representation of the database.
+ * @throws {Error} If schema is not an array or empty.
  */
-/**
- * @typedef {Object} ColumnMetadataParams
- * @property {string} tableCatalog - Table catalog (usually 'def')
- * @property {string} tableSchema - Database/schema name
- * @property {string} tableName - Table name
- * @property {string} columnName - Column name
- * @property {number} ordinalPosition - Position in table (1-based)
- * @property {string|null} columnDefault - Default value
- * @property {'YES'|'NO'} isNullable - Nullable status
- * @property {string} dataType - Data type (e.g. 'int', 'varchar')
- * @property {number|null} characterMaximumLength - Max length for string types (characters)
- * @property {number|null} characterOctetLength - Max length for string types (bytes)
- * @property {number|null} numericPrecision - Precision for numeric types
- * @property {number|null} numericScale - Scale for numeric types
- * @property {number|null} datetimePrecision - Precision for datetime types
- * @property {string|null} characterSetName - Character set for string types
- * @property {string|null} collationName - Collation for string types
- * @property {string} columnType - Full column type (e.g. 'int(11) unsigned')
- * @property {'PRI'|'UNI'|'MUL'|''} columnKey - Key type (primary/unique/etc.)
- * @property {string} extra - Extra information (e.g. 'auto_increment')
- * @property {string} privileges - Column privileges
- * @property {string} columnComment - Column comment
- * @property {'NEVER'|'ALWAYS'|string} isGenerated - Generation status
- * @property {string|null} generationExpression - Generation expression
- */
+export function parseMySQLSchema(schema: ColumnMetadataRaw[]): MySQLDatabase;
+
+/* From utils.d.ts */
 /**
  * Validate a raw column metadata object against the expected structure and types.
  * Throws an error if the object is invalid.
@@ -464,9 +251,14 @@ export class MySQLTableColumn {
  */
 export function assertColumnMetadataRaw(obj: ColumnMetadataRaw): true;
 /**
- * Parses a MySQL schema definition into a structured representation
- *
- * @param {ColumnMetadataRaw[]} schema - MySQL schema definition
- * @returns {MySQLDatabase} Structured representation of the database
+ * Escape a string for safe use in SQL (single quotes doubled).
+ * @param {string} str Input string
+ * @returns {string} Escaped string
  */
-export function parseMySQLSchema(schema: ColumnMetadataRaw[]): MySQLDatabase;
+export function escapeString(str: string): string;
+/**
+ * Format a column default value for SQL query.
+ * @param {MySQLTableColumn} column Column instance
+ * @returns {string} Formatted default value
+ */
+export function formatDefaultValue(column: MySQLTableColumn): string;

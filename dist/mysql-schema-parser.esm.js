@@ -1,57 +1,5 @@
 // @ts-check
 
-/**
- * Database column metadata object describing a table column's structure
- * @typedef {Object} ColumnMetadataRaw
- * @property {string} TABLE_CATALOG Table catalog (typically 'def' in MySQL)
- * @property {string} TABLE_SCHEMA Database/schema name containing the table
- * @property {string} TABLE_NAME Name of the table
- * @property {string} COLUMN_NAME Name of the column
- * @property {number} ORDINAL_POSITION Column position in table (1-based index)
- * @property {string|null} COLUMN_DEFAULT Default value for the column
- * @property {'YES'|'NO'} IS_NULLABLE Whether the column is nullable
- * @property {string} DATA_TYPE Column's data type (e.g., 'int', 'varchar')
- * @property {number|null} CHARACTER_MAXIMUM_LENGTH Maximum length for string types (in characters)
- * @property {number|null} CHARACTER_OCTET_LENGTH Maximum length for string types (in bytes)
- * @property {number|null} NUMERIC_PRECISION Precision for numeric types
- * @property {number|null} NUMERIC_SCALE Scale for numeric types
- * @property {number|null} DATETIME_PRECISION Precision for datetime types
- * @property {string|null} CHARACTER_SET_NAME Character set for string types
- * @property {string|null} COLLATION_NAME Collation for string types
- * @property {string} COLUMN_TYPE Full column type description (e.g., 'int(10) unsigned')
- * @property {'PRI'|'UNI'|'MUL'|''} COLUMN_KEY Column index type (PRI=primary key, UNI=unique, etc.)
- * @property {string} EXTRA Additional information (e.g., 'auto_increment')
- * @property {string} PRIVILEGES Comma-separated column privileges
- * @property {string} COLUMN_COMMENT Column comment
- * @property {'NEVER'|'ALWAYS'|string} IS_GENERATED Whether column value is generated
- * @property {string|null} GENERATION_EXPRESSION Expression for generated columns
- */
-
-/**
- * @typedef {Object} ColumnMetadataParams
- * @property {string} tableCatalog - Table catalog (usually 'def')
- * @property {string} tableSchema - Database/schema name
- * @property {string} tableName - Table name
- * @property {string} columnName - Column name
- * @property {number} ordinalPosition - Position in table (1-based)
- * @property {string|null} columnDefault - Default value
- * @property {'YES'|'NO'} isNullable - Nullable status
- * @property {string} dataType - Data type (e.g. 'int', 'varchar')
- * @property {number|null} characterMaximumLength - Max length for string types (characters)
- * @property {number|null} characterOctetLength - Max length for string types (bytes)
- * @property {number|null} numericPrecision - Precision for numeric types
- * @property {number|null} numericScale - Scale for numeric types
- * @property {number|null} datetimePrecision - Precision for datetime types
- * @property {string|null} characterSetName - Character set for string types
- * @property {string|null} collationName - Collation for string types
- * @property {string} columnType - Full column type (e.g. 'int(11) unsigned')
- * @property {'PRI'|'UNI'|'MUL'|''} columnKey - Key type (primary/unique/etc.)
- * @property {string} extra - Extra information (e.g. 'auto_increment')
- * @property {string} privileges - Column privileges
- * @property {string} columnComment - Column comment
- * @property {'NEVER'|'ALWAYS'|string} isGenerated - Generation status
- * @property {string|null} generationExpression - Generation expression
- */
 
 /**
  * Validate a raw column metadata object against the expected structure and types.
@@ -61,107 +9,43 @@
  * @throws {Error} If the object is invalid
  */
 function assertColumnMetadataRaw(obj) {
-    if (typeof obj !== "object" || obj === null) {
-        throw new Error("Input must be a non-null object");
+    if (typeof obj !== 'object' || obj === null) {
+        throw new Error('Input must be a non-null object');
     }
 
-    const requiredKeys = [
-        "TABLE_CATALOG",
-        "TABLE_SCHEMA",
-        "TABLE_NAME",
-        "COLUMN_NAME",
-        "ORDINAL_POSITION",
-        "IS_NULLABLE",
-        "DATA_TYPE",
-        "COLUMN_TYPE",
-        "COLUMN_KEY",
-        "EXTRA",
-        "PRIVILEGES",
-        "COLUMN_COMMENT",
-        "IS_GENERATED",
-    ];
-
-    for (const key of requiredKeys) {
-        if (!(key in obj)) {
-            throw new Error(`Missing required field: ${key}`);
-        }
-    }
-
+    /**
+     * @type {Record<keyof ColumnMetadataRaw, (val: any) => boolean>}
+     */
     const validators = {
-        TABLE_CATALOG: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        TABLE_SCHEMA: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        TABLE_NAME: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        COLUMN_NAME: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        ORDINAL_POSITION: (val) =>
-            typeof val === "number" || `Expected number, got ${typeof val}`,
-        COLUMN_DEFAULT: (val) =>
-            val === null ||
-            typeof val === "string" ||
-            `Expected string or null, got ${typeof val}`,
-        IS_NULLABLE: (val) =>
-            val === "YES" ||
-            val === "NO" ||
-            `Expected 'YES' or 'NO', got ${val}`,
-        DATA_TYPE: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        CHARACTER_MAXIMUM_LENGTH: (val) =>
-            val === null ||
-            typeof val === "number" ||
-            `Expected number or null, got ${typeof val}`,
-        CHARACTER_OCTET_LENGTH: (val) =>
-            val === null ||
-            typeof val === "number" ||
-            `Expected number or null, got ${typeof val}`,
-        NUMERIC_PRECISION: (val) =>
-            val === null ||
-            typeof val === "number" ||
-            `Expected number or null, got ${typeof val}`,
-        NUMERIC_SCALE: (val) =>
-            val === null ||
-            typeof val === "number" ||
-            `Expected number or null, got ${typeof val}`,
-        DATETIME_PRECISION: (val) =>
-            val === null ||
-            typeof val === "number" ||
-            `Expected number or null, got ${typeof val}`,
-        CHARACTER_SET_NAME: (val) =>
-            val === null ||
-            typeof val === "string" ||
-            `Expected string or null, got ${typeof val}`,
-        COLLATION_NAME: (val) =>
-            val === null ||
-            typeof val === "string" ||
-            `Expected string or null, got ${typeof val}`,
-        COLUMN_TYPE: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        COLUMN_KEY: (val) =>
-            ["PRI", "UNI", "MUL", ""].includes(val) ||
-            `Expected 'PRI', 'UNI', 'MUL' or empty string, got ${val}`,
-        EXTRA: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        PRIVILEGES: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        COLUMN_COMMENT: (val) =>
-            typeof val === "string" || `Expected string, got ${typeof val}`,
-        IS_GENERATED: (val) =>
-            val === "NEVER" ||
-            val === "ALWAYS" ||
-            typeof val === "string" ||
-            `Expected 'NEVER', 'ALWAYS' or string, got ${val}`,
-        GENERATION_EXPRESSION: (val) =>
-            val === null ||
-            typeof val === "string" ||
-            `Expected string or null, got ${typeof val}`,
+        TABLE_CATALOG: val => typeof val === 'string',
+        TABLE_SCHEMA: val => typeof val === 'string',
+        TABLE_NAME: val => typeof val === 'string',
+        COLUMN_NAME: val => typeof val === 'string',
+        ORDINAL_POSITION: val => typeof val === 'number',
+        COLUMN_DEFAULT: val => val === null || typeof val === 'string',
+        IS_NULLABLE: val => val === 'YES' || val === 'NO',
+        DATA_TYPE: val => typeof val === 'string',
+        CHARACTER_MAXIMUM_LENGTH: val => val === null || typeof val === 'number',
+        CHARACTER_OCTET_LENGTH: val => val === null || typeof val === 'number',
+        NUMERIC_PRECISION: val => val === null || typeof val === 'number',
+        NUMERIC_SCALE: val => val === null || typeof val === 'number',
+        DATETIME_PRECISION: val => val === null || typeof val === 'number',
+        CHARACTER_SET_NAME: val => val === null || typeof val === 'string',
+        COLLATION_NAME: val => val === null || typeof val === 'string',
+        COLUMN_TYPE: val => typeof val === 'string',
+        COLUMN_KEY: val => ['PRI', 'UNI', 'MUL', ''].includes(val),
+        EXTRA: val => typeof val === 'string',
+        PRIVILEGES: val => typeof val === 'string',
+        COLUMN_COMMENT: val => typeof val === 'string',
+        IS_GENERATED: val => val === 'NEVER' || val === 'ALWAYS' || typeof val === 'string',
+        GENERATION_EXPRESSION: val => val === null || typeof val === 'string',
     };
 
     for (const [key, validator] of Object.entries(validators)) {
-        const validationResult = validator(obj[key]);
-        if (typeof validationResult === "string") {
-            throw new Error(`Invalid ${key}: ${validationResult}`);
+        // @ts-ignore
+        if (key in obj && !validator(obj[key])) {
+            // @ts-ignore
+            throw new Error(`Invalid ${key}: value ${obj[key]} does not match expected type`);
         }
     }
 
@@ -169,139 +53,90 @@ function assertColumnMetadataRaw(obj) {
 }
 
 /**
+ * Escape a string for safe use in SQL (single quotes doubled).
+ * @param {string} str Input string
+ * @returns {string} Escaped string
+ */
+function escapeString(str) {
+    return str.replace(/'/g, "''");
+}
+
+/**
+ * Format a column default value for SQL query.
+ * @param {MySQLTableColumn} column Column instance
+ * @returns {string} Formatted default value
+ */
+function formatDefaultValue(column) {
+    if (column.columnDefault === null) return 'NULL';
+
+    if (['char', 'varchar', 'text', 'enum', 'set'].includes(column.dataType.toLowerCase())) {
+        return `'${escapeString(column.columnDefault)}'`;
+    }
+
+    if (
+        ['timestamp', 'datetime'].includes(column.dataType.toLowerCase()) &&
+        column.columnDefault.toUpperCase() === 'CURRENT_TIMESTAMP'
+    ) {
+        return 'CURRENT_TIMESTAMP';
+    }
+
+    if (['blob', 'binary'].includes(column.dataType.toLowerCase())) {
+        return `x'${column.columnDefault}'`;
+    }
+
+    return column.columnDefault;
+}
+
+// @ts-check
+
+
+/**
  * Class representing normalized database column metadata
  */
 class MySQLTableColumn {
-    /**
-     * Table catalog (typically 'def' in MySQL)
-     * @type {string}
-     */
+    /** @type {string} */
     tableCatalog;
-
-    /**
-     * Database/schema name containing the table
-     * @type {string}
-     */
+    /** @type {string} */
     tableSchema;
-
-    /**
-     * Name of the table
-     * @type {string}
-     */
+    /** @type {string} */
     tableName;
-
-    /**
-     * Name of the column
-     *  @type {string}
-     */
+    /** @type {string} */
     columnName;
-
-    /**
-     * Column position in table (1-based index)
-     * @type {number}
-     */
+    /** @type {number} */
     ordinalPosition;
-
-    /**
-     * Default value for the column
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     columnDefault;
-
-    /**
-     * Whether the column is nullable
-     * @type {'YES'|'NO'}
-     */
+    /** @type {'YES'|'NO'} */
     isNullable;
-
-    /**
-     * Column's data type (e.g., 'int', 'varchar')
-     * @type {string}
-     */
+    /** @type {string} */
     dataType;
-
-    /**
-     * Maximum length for string types (in characters)
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     characterMaximumLength;
-
-    /**
-     * Maximum length for string types (in bytes)
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     characterOctetLength;
-
-    /**
-     * Precision for numeric types
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     numericPrecision;
-
-    /**
-     * Scale for numeric types
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     numericScale;
-
-    /**
-     * Precision for datetime types
-     * @type {number|null}
-     */
+    /** @type {number|null} */
     datetimePrecision;
-
-    /**
-     * Character set for string types
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     characterSetName;
-
-    /**
-     * Collation for string types
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     collationName;
-
-    /**
-     * Full column type description (e.g., 'int(10) unsigned')
-     * @type {string}
-     */
+    /** @type {string} */
     columnType;
-
-    /**
-     * Column index type (PRI=primary key, UNI=unique, etc.)
-     * @type {'PRI'|'UNI'|'MUL'|''}
-     */
+    /** @type {'PRI'|'UNI'|'MUL'|''} */
     columnKey;
-
-    /**
-     * Additional information (e.g., 'auto_increment')
-     * @type {string}
-     */
+    /** @type {string} */
     extra;
-
-    /**
-     * Comma-separated column privileges
-     * @type {string}
-     */
+    /** @type {string} */
     privileges;
-
-    /**
-     * Column comment
-     * @type {string}
-     */
+    /** @type {string} */
     columnComment;
-
-    /**
-     * Whether column value is generated
-     * @type {'NEVER'|'ALWAYS'|string}
-     */
+    /** @type {'NEVER'|'ALWAYS'|string} */
     isGenerated;
-
-    /**
-     * Expression for generated columns
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     generationExpression;
 
     /**
@@ -309,6 +144,29 @@ class MySQLTableColumn {
      * @param {ColumnMetadataParams} [data]
      */
     constructor(data) {
+        this.tableCatalog = '';
+        this.tableSchema = '';
+        this.tableName = '';
+        this.columnName = '';
+        this.ordinalPosition = 0;
+        this.columnDefault = null;
+        this.isNullable = 'NO';
+        this.dataType = '';
+        this.characterMaximumLength = null;
+        this.characterOctetLength = null;
+        this.numericPrecision = null;
+        this.numericScale = null;
+        this.datetimePrecision = null;
+        this.characterSetName = null;
+        this.collationName = null;
+        this.columnType = '';
+        this.columnKey = '';
+        this.extra = '';
+        this.privileges = '';
+        this.columnComment = '';
+        this.isGenerated = 'NEVER';
+        this.generationExpression = null;
+
         if (!data) return;
 
         this.tableCatalog = data.tableCatalog;
@@ -371,7 +229,7 @@ class MySQLTableColumn {
      * @returns {boolean}
      */
     isPrimaryKey() {
-        return this.columnKey === "PRI";
+        return this.columnKey === 'PRI';
     }
 
     /**
@@ -379,7 +237,7 @@ class MySQLTableColumn {
      * @returns {boolean}
      */
     allowsNull() {
-        return this.isNullable === "YES";
+        return this.isNullable === 'YES';
     }
 
     /**
@@ -387,19 +245,18 @@ class MySQLTableColumn {
      * @returns {boolean}
      */
     isAutoIncrement() {
-        return this.extra.includes("auto_increment");
+        return this.extra.includes('auto_increment');
     }
 
     /**
-     * Get full column definition as string
+     * Get full column definition as string (without PRIMARY KEY constraint)
      * @returns {string}
      */
     getColumnDefinition() {
         return (
             `${this.columnName} ${this.columnType}` +
-            (this.isPrimaryKey() ? " PRIMARY KEY" : "") +
-            (this.isAutoIncrement() ? " AUTO_INCREMENT" : "") +
-            (this.allowsNull() ? "" : " NOT NULL")
+            (this.isAutoIncrement() ? ' AUTO_INCREMENT' : '') +
+            (this.allowsNull() ? '' : ' NOT NULL')
         );
     }
 
@@ -408,63 +265,12 @@ class MySQLTableColumn {
      * @returns {ColumnMetadataParams} JSON-serializable object with column metadata
      */
     toJSON() {
-        return {
-            ...this,
-        };
+        return { ...this };
     }
 }
 
-class MySQLDatabase {
-    /** @type {string} */
-    databaseName;
-    /** @type {Map<string, MySQLTable>} */
-    tables = new Map();
+// @ts-check
 
-    /**
-     * Creates an instance of MySQLDatabase.
-     *
-     * @param {string} databaseName - The name of the database.
-     * @param {ColumnMetadataRaw[]} [cols=[]] - An array of table objects with table name and columns metadata.
-     */
-    constructor(databaseName, cols = []) {
-        this.databaseName = databaseName;
-
-        let tableNames = new Set();
-
-        // Validate and import tables
-        for (let i = 0; i < cols.length; i++) {
-            tableNames.add(cols[i].TABLE_NAME);
-        }
-
-        for (let tableName of tableNames) {
-            let tableCols = cols.filter((col) => col.TABLE_NAME === tableName);
-
-            if (tableCols.length === 0) {
-                continue; // Skip empty tables
-            }
-
-            let table = new MySQLTable(tableName, tableCols);
-            this.addTable(table);
-        }
-    }
-
-    /**
-     * Adds a table to the database.
-     *
-     * @param {MySQLTable} table - The table to add.
-     */
-    addTable(table) {
-        this.tables.set(table.tableName, table);
-    }
-
-    /**
-     * Get all table names in the database
-     * @returns {string[]} An array of table names
-     */
-    getTableNames() {
-        return Array.from(this.tables.keys());
-    }
-}
 
 class MySQLTable {
     /** @type {string} */
@@ -488,7 +294,6 @@ class MySQLTable {
             }
 
             column.importFromRawData(columns[i]);
-
             this.columns.set(columns[i].COLUMN_NAME, column);
         }
     }
@@ -502,11 +307,13 @@ class MySQLTable {
     }
 
     /**
-     * Get all columns in table
+     * Get all columns in table, sorted by ordinal position
      * @returns {MySQLTableColumn[]}
      */
     getColumns() {
-        return Array.from(this.columns.values());
+        return Array.from(this.columns.values()).sort(
+            (a, b) => a.ordinalPosition - b.ordinalPosition
+        );
     }
 
     /**
@@ -539,29 +346,17 @@ class MySQLTable {
         const indexes = [];
 
         for (const column of columns) {
-            let definition = `\`${column.columnName}\` ${column.columnType}`;
-
-            // NOT NULL
-            if (!column.allowsNull()) {
-                definition += " NOT NULL";
-            }
+            let definition = column.getColumnDefinition();
 
             // DEFAULT
             if (column.columnDefault !== null) {
-                const defaultValue = this.#formatDefaultValue(column);
+                const defaultValue = formatDefaultValue(column);
                 definition += ` DEFAULT ${defaultValue}`;
-            }
-
-            // AUTO_INCREMENT
-            if (column.isAutoIncrement()) {
-                definition += " AUTO_INCREMENT";
             }
 
             // COMMENT
             if (column.columnComment) {
-                definition += ` COMMENT '${this.#escapeString(
-                    column.columnComment
-                )}'`;
+                definition += ` COMMENT '${escapeString(column.columnComment)}'`;
             }
 
             columnDefinitions.push(definition);
@@ -569,86 +364,44 @@ class MySQLTable {
             // Indexes
             if (column.isPrimaryKey()) {
                 primaryKeys.push(`\`${column.columnName}\``);
-            } else if (column.columnKey === "UNI") {
+            } else if (column.columnKey === 'UNI') {
                 uniqueKeys.push(`\`${column.columnName}\``);
-            } else if (column.columnKey === "MUL") {
+            } else if (column.columnKey === 'MUL') {
                 indexes.push(`\`${column.columnName}\``);
             }
         }
 
         if (primaryKeys.length > 0) {
-            columnDefinitions.push(`PRIMARY KEY (${primaryKeys.join(", ")})`);
+            columnDefinitions.push(`PRIMARY KEY (${primaryKeys.join(', ')})`);
         }
 
         for (const uniqueCol of uniqueKeys) {
-            columnDefinitions.push(
-                `UNIQUE KEY \`${uniqueCol.replace(
-                    /`/g,
-                    ""
-                )}_unique\` (${uniqueCol})`
-            );
+            const colNameClean = uniqueCol.replace(/`/g, '');
+            const idxName = `${this.tableName}_${colNameClean}_unique`.slice(0, 64);
+            columnDefinitions.push(`UNIQUE KEY \`${idxName}\` (${uniqueCol})`);
+        }
+
+        for (const idxCol of indexes) {
+            columnDefinitions.push(`KEY ${idxCol}`);
         }
 
         let query = `CREATE TABLE \`${this.tableName}\` (\n  `;
-        query += columnDefinitions.join(",\n  ");
-        query += "\n)";
+        query += columnDefinitions.join(',\n  ');
+        query += '\n)';
 
         if (options.engine) {
             query += ` ENGINE=${options.engine}`;
         }
 
-        const charset =
-            options.charset || columns[0].characterSetName || "utf8mb4";
-        const collation =
-            options.collation ||
-            columns[0].collationName ||
-            "utf8mb4_unicode_ci";
+        const charset = options.charset || columns[0].characterSetName || 'utf8mb4';
+        const collation = options.collation || columns[0].collationName || 'utf8mb4_unicode_ci';
         query += ` DEFAULT CHARSET=${charset} COLLATE=${collation}`;
 
         if (options.comment) {
-            query += ` COMMENT='${this.#escapeString(options.comment)}'`;
+            query += ` COMMENT='${escapeString(options.comment)}'`;
         }
 
-        return query + ";";
-    }
-
-    /**
-     * Formats default value for SQL query
-     * @param {MySQLTableColumn} column
-     * @returns {string}
-     */
-    #formatDefaultValue(column) {
-        if (column.columnDefault === null) return "NULL";
-
-        if (
-            ["char", "varchar", "text", "enum", "set"].includes(
-                column.dataType.toLowerCase()
-            )
-        ) {
-            return `'${this.#escapeString(column.columnDefault)}'`;
-        }
-
-        if (
-            ["timestamp", "datetime"].includes(column.dataType.toLowerCase()) &&
-            column.columnDefault.toUpperCase() === "CURRENT_TIMESTAMP"
-        ) {
-            return "CURRENT_TIMESTAMP";
-        }
-
-        if (["blob", "binary"].includes(column.dataType.toLowerCase())) {
-            return `x'${column.columnDefault}'`;
-        }
-
-        return column.columnDefault;
-    }
-
-    /**
-     * Escapes string for SQL
-     * @param {string} str
-     * @returns {string}
-     */
-    #escapeString(str) {
-        return str.replace(/'/g, "''").replace(/\\/g, "\\\\");
+        return query + ';';
     }
 
     /**
@@ -658,20 +411,102 @@ class MySQLTable {
     getColumnNames() {
         return Array.from(this.columns.keys());
     }
+
+    /**
+     * Returns JSON representation of the table
+     * @returns {Object}
+     */
+    toJSON() {
+        return {
+            tableName: this.tableName,
+            columns: Object.fromEntries(
+                Array.from(this.columns.entries()).map(([name, col]) => [name, col.toJSON()])
+            ),
+        };
+    }
 }
 
+// @ts-check
+
+
+class MySQLDatabase {
+    /** @type {string} */
+    databaseName;
+    /** @type {Map<string, MySQLTable>} */
+    tables = new Map();
+
+    /**
+     * Creates an instance of MySQLDatabase.
+     * @param {string} databaseName - The name of the database.
+     * @param {ColumnMetadataRaw[]} [cols=[]] - Array of raw column metadata.
+     */
+    constructor(databaseName, cols = []) {
+        this.databaseName = databaseName;
+
+        // Verify all columns belong to this database
+        for (const col of cols) {
+            if (col.TABLE_SCHEMA !== databaseName) {
+                throw new Error(
+                    `Column ${col.COLUMN_NAME} belongs to schema ${col.TABLE_SCHEMA}, expected ${databaseName}`
+                );
+            }
+        }
+
+        const tableNames = new Set(cols.map(col => col.TABLE_NAME));
+
+        for (const tableName of tableNames) {
+            const tableCols = cols.filter(col => col.TABLE_NAME === tableName);
+            if (tableCols.length === 0) continue;
+            const table = new MySQLTable(tableName, tableCols);
+            this.addTable(table);
+        }
+    }
+
+    /**
+     * Adds a table to the database.
+     * @param {MySQLTable} table - The table to add.
+     */
+    addTable(table) {
+        this.tables.set(table.tableName, table);
+    }
+
+    /**
+     * Get all table names in the database
+     * @returns {string[]} An array of table names
+     */
+    getTableNames() {
+        return Array.from(this.tables.keys());
+    }
+
+    /**
+     * Returns JSON representation of the whole database
+     * @returns {Object}
+     */
+    toJSON() {
+        return {
+            databaseName: this.databaseName,
+            tables: Object.fromEntries(
+                Array.from(this.tables.entries()).map(([name, table]) => [name, table.toJSON()])
+            ),
+        };
+    }
+}
+
+// @ts-check
+
+
 /**
- * Parses a MySQL schema definition into a structured representation
- *
- * @param {ColumnMetadataRaw[]} schema - MySQL schema definition
- * @returns {MySQLDatabase} Structured representation of the database
+ * Parses a MySQL schema definition into a structured representation.
+ * @param {ColumnMetadataRaw[]} schema - MySQL schema metadata array.
+ * @returns {MySQLDatabase} Structured representation of the database.
+ * @throws {Error} If schema is not an array or empty.
  */
 function parseMySQLSchema(schema) {
-    if (!Array.isArray(schema)) throw new Error("Schema must be an array");
-    if (schema.length === 0) throw new Error("Schema must not be empty");
+    if (!Array.isArray(schema)) throw new Error('Schema must be an array');
+    if (schema.length === 0) throw new Error('Schema must not be empty');
 
-    let databaseName = schema[0].TABLE_SCHEMA;
+    const databaseName = schema[0].TABLE_SCHEMA;
     return new MySQLDatabase(databaseName, schema);
 }
 
-export { MySQLDatabase, MySQLTable, MySQLTableColumn, assertColumnMetadataRaw, parseMySQLSchema };
+export { MySQLDatabase, MySQLTable, MySQLTableColumn, assertColumnMetadataRaw, escapeString, formatDefaultValue, parseMySQLSchema };
