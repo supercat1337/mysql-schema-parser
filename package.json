@@ -9,7 +9,7 @@
     "types": "dist/mysql-schema-parser.esm.d.ts",
     "homepage": "https://github.com/supercat1337/mysql-schema-parser",
     "repository": {
-        "url": "https://github.com/supercat1337/mysql-schema-parser"
+        "url": "git+https://github.com/supercat1337/mysql-schema-parser.git"
     },
     "exports": {
         ".": {
@@ -47,5 +47,10 @@
     },
     "devDependencies": {
         "shx": "^0.4.0"
-    }
+    },
+    "files": [
+        "dist/",
+        "README.md",
+        "LICENSE"
+    ]
 }
