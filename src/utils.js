@@ -54,6 +54,43 @@ export function assertColumnMetadataRaw(obj) {
 }
 
 /**
+ * Validate an index statistics object.
+ * @param {IndexStatisticsRaw} obj
+ * @returns {true}
+ * @throws {Error}
+ */
+export function assertIndexStatisticsRaw(obj) {
+    if (typeof obj !== 'object' || obj === null) {
+        throw new Error('IndexStatisticsRaw must be a non-null object');
+    }
+
+    /**
+     * @type {Record<keyof IndexStatisticsRaw, (val: any) => boolean>}
+     */
+    const validators = {
+        TABLE_SCHEMA: v => typeof v === 'string',
+        TABLE_NAME: v => typeof v === 'string',
+        INDEX_NAME: v => typeof v === 'string',
+        COLUMN_NAME: v => typeof v === 'string',
+        CARDINALITY: v => v === null || typeof v === 'number',
+        NON_UNIQUE: v => v === 0 || v === 1,
+        SEQ_IN_INDEX: v => typeof v === 'number',
+        SUB_PART: v => v === null || typeof v === 'number',
+        NULLABLE: v => v === 'YES' || v === 'NO',
+        INDEX_TYPE: v => typeof v === 'string',
+        COLLATION: v => v === 'A' || v === 'D' || v === null,
+    };
+    for (const [key, validator] of Object.entries(validators)) {
+        // @ts-ignore
+        if (key in obj && !validator(obj[key])) {
+            // @ts-ignore
+            throw new Error(`Invalid ${key}: ${obj[key]}`);
+        }
+    }
+    return true;
+}
+
+/**
  * Escape a string for safe use in SQL (single quotes doubled).
  * @param {string} str Input string
  * @returns {string} Escaped string

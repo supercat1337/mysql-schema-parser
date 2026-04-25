@@ -1,5 +1,3 @@
-// 1. Обязательно добавляем export, чтобы файл стал модулем.
-// Это позволит использовать блок 'declare global'.
 export interface ColumnMetadataRaw {
     TABLE_CATALOG: string;
     TABLE_SCHEMA: string;
@@ -50,14 +48,51 @@ export interface ColumnMetadataParams {
     generationExpression: string | null;
 }
 
-// 2. Теперь блок declare global сработает без ошибок TS2669
 declare global {
-    // Мы объявляем эти интерфейсы в глобальной области, 
-    // чтобы JS-файлы в src/ видели их без импортов.
     interface ColumnMetadataRaw extends _ColumnMetadataRaw {}
     interface ColumnMetadataParams extends _ColumnMetadataParams {}
 }
 
-// Технический алиас, чтобы избежать прямой рекурсии в declare global
+
 type _ColumnMetadataRaw = ColumnMetadataRaw;
 type _ColumnMetadataParams = ColumnMetadataParams;
+
+
+// ===== New: Statistics from INFORMATION_SCHEMA.STATISTICS =====
+
+export interface IndexStatisticsRaw {
+    TABLE_SCHEMA: string;
+    TABLE_NAME: string;
+    INDEX_NAME: string;
+    COLUMN_NAME: string;
+    CARDINALITY: number | null;
+    NON_UNIQUE: 0 | 1;
+    SEQ_IN_INDEX: number;
+    SUB_PART: number | null;
+    NULLABLE: string;          // 'YES' or 'NO'
+    INDEX_TYPE: string;        // 'BTREE', 'HASH', 'FULLTEXT', 'SPATIAL'
+    COLLATION: 'A' | 'D' | null;
+}
+
+export interface IndexStatistics {
+    tableSchema: string;
+    tableName: string;
+    indexName: string;
+    columnName: string;
+    cardinality: number | null;
+    nonUnique: boolean;
+    seqInIndex: number;
+    subPart: number | null;
+    nullable: boolean;
+    indexType: string;
+    collation: 'ASC' | 'DESC' | null;
+}
+
+// Extend global interfaces so they are available in JS files without imports
+declare global {
+    interface IndexStatisticsRaw extends _IndexStatisticsRaw {}
+    interface IndexStatistics extends _IndexStatistics {}
+}
+
+type _IndexStatisticsRaw = IndexStatisticsRaw;
+type _IndexStatistics = IndexStatistics;

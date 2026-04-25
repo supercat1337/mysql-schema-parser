@@ -1,6 +1,6 @@
 {
     "name": "@supercat1337/mysql-schema-parser",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "A library for parsing and working with MySQL database schema metadata.",
     "license": "MIT",
     "author": "Supercat1337",

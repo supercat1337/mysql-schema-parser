@@ -1,5 +1,3 @@
-// 1. Обязательно добавляем export, чтобы файл стал модулем.
-// Это позволит использовать блок 'declare global'.
 export interface ColumnMetadataRaw {
     TABLE_CATALOG: string;
     TABLE_SCHEMA: string;
@@ -50,17 +48,54 @@ export interface ColumnMetadataParams {
     generationExpression: string | null;
 }
 
-// 2. Теперь блок declare global сработает без ошибок TS2669
 declare global {
-    // Мы объявляем эти интерфейсы в глобальной области, 
-    // чтобы JS-файлы в src/ видели их без импортов.
     interface ColumnMetadataRaw extends _ColumnMetadataRaw {}
     interface ColumnMetadataParams extends _ColumnMetadataParams {}
 }
 
-// Технический алиас, чтобы избежать прямой рекурсии в declare global
+
 type _ColumnMetadataRaw = ColumnMetadataRaw;
 type _ColumnMetadataParams = ColumnMetadataParams;
+
+
+// ===== New: Statistics from INFORMATION_SCHEMA.STATISTICS =====
+
+export interface IndexStatisticsRaw {
+    TABLE_SCHEMA: string;
+    TABLE_NAME: string;
+    INDEX_NAME: string;
+    COLUMN_NAME: string;
+    CARDINALITY: number | null;
+    NON_UNIQUE: 0 | 1;
+    SEQ_IN_INDEX: number;
+    SUB_PART: number | null;
+    NULLABLE: string;          // 'YES' or 'NO'
+    INDEX_TYPE: string;        // 'BTREE', 'HASH', 'FULLTEXT', 'SPATIAL'
+    COLLATION: 'A' | 'D' | null;
+}
+
+export interface IndexStatistics {
+    tableSchema: string;
+    tableName: string;
+    indexName: string;
+    columnName: string;
+    cardinality: number | null;
+    nonUnique: boolean;
+    seqInIndex: number;
+    subPart: number | null;
+    nullable: boolean;
+    indexType: string;
+    collation: 'ASC' | 'DESC' | null;
+}
+
+// Extend global interfaces so they are available in JS files without imports
+declare global {
+    interface IndexStatisticsRaw extends _IndexStatisticsRaw {}
+    interface IndexStatistics extends _IndexStatistics {}
+}
+
+type _IndexStatisticsRaw = IndexStatisticsRaw;
+type _IndexStatistics = IndexStatistics;
 
 /* From MySQLDatabase.d.ts */
 export class MySQLDatabase {
@@ -74,6 +109,11 @@ export class MySQLDatabase {
     databaseName: string;
     /** @type {Map<string, MySQLTable>} */
     tables: Map<string, MySQLTable>;
+    /**
+     * Load index statistics for all tables in the database.
+     * @param {IndexStatisticsRaw[]} indexesStats - Array from INFORMATION_SCHEMA.STATISTICS
+     */
+    loadIndexStatistics(indexesStats: IndexStatisticsRaw[]): void;
     /**
      * Adds a table to the database.
      * @param {MySQLTable} table - The table to add.
@@ -103,6 +143,8 @@ export class MySQLTable {
     tableName: string;
     /** @type {Map<string, MySQLTableColumn>} */
     columns: Map<string, MySQLTableColumn>;
+    /** @type {Map<string, IndexStatistics[]>} */
+    indexStats: Map<string, IndexStatistics[]>;
     /**
      * Adds a column to the table
      * @param {MySQLTableColumn} column The column to add
@@ -120,7 +162,36 @@ export class MySQLTable {
      */
     getColumn(columnName: string): MySQLTableColumn | null;
     /**
-     * Generates CREATE TABLE SQL statement based on table metadata
+     * Adds index statistics for this table.
+     * @param {IndexStatisticsRaw} idxRaw
+     */
+    addIndexStatistics(idxRaw: IndexStatisticsRaw): void;
+    /**
+     * Returns all indexes of the table.
+     * @returns {Map<string, IndexStatistics[]>}
+     */
+    getIndexes(): Map<string, IndexStatistics[]>;
+    /**
+     * Returns index by name.
+     * @param {string} indexName
+     * @returns {IndexStatistics[] | null}
+     */
+    getIndex(indexName: string): IndexStatistics[] | null;
+    /**
+     * Returns cardinality of the index (usually for the first column).
+     * @param {string} indexName
+     * @returns {number | null}
+     */
+    getIndexCardinality(indexName: string): number | null;
+    /**
+     * Returns the column names of the primary key, or null if no primary key exists.
+     * For composite primary keys, returns all columns in order.
+     * @returns {string[] | null}
+     */
+    getPrimaryKey(): string[] | null;
+    /**
+     * Generates CREATE TABLE SQL statement based on table metadata.
+     * Uses index statistics if available, otherwise falls back to columnKey.
      * @param {Object} [options] Additional options
      * @param {string} [options.engine] Storage engine (e.g. 'InnoDB')
      * @param {string} [options.charset] Default charset (e.g. 'utf8mb4')
@@ -230,6 +301,11 @@ export class MySQLTableColumn {
      * @returns {ColumnMetadataParams} JSON-serializable object with column metadata
      */
     toJSON(): ColumnMetadataParams;
+    /**
+     * Returns an array of allowed values if column type is enum or set, otherwise null.
+     * @returns {string[] | null}
+     */
+    getEnumValues(): string[] | null;
 }
 
 /* From parseMySQLSchema.d.ts */
@@ -240,6 +316,12 @@ export class MySQLTableColumn {
  * @throws {Error} If schema is not an array or empty.
  */
 export function parseMySQLSchema(schema: ColumnMetadataRaw[]): MySQLDatabase;
+/**
+ * Enrich a MySQLDatabase object with index statistics.
+ * @param {MySQLDatabase} db - Database object to enrich
+ * @param {IndexStatisticsRaw[]} indexes - Array from INFORMATION_SCHEMA.STATISTICS
+ */
+export function enrichWithStatistics(db: MySQLDatabase, indexes: IndexStatisticsRaw[]): void;
 
 /* From utils.d.ts */
 /**
@@ -250,6 +332,13 @@ export function parseMySQLSchema(schema: ColumnMetadataRaw[]): MySQLDatabase;
  * @throws {Error} If the object is invalid
  */
 export function assertColumnMetadataRaw(obj: ColumnMetadataRaw): true;
+/**
+ * Validate an index statistics object.
+ * @param {IndexStatisticsRaw} obj
+ * @returns {true}
+ * @throws {Error}
+ */
+export function assertIndexStatisticsRaw(obj: IndexStatisticsRaw): true;
 /**
  * Escape a string for safe use in SQL (single quotes doubled).
  * @param {string} str Input string

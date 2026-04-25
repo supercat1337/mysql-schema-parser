@@ -179,4 +179,16 @@ export class MySQLTableColumn {
     toJSON() {
         return { ...this };
     }
+
+    /**
+     * Returns an array of allowed values if column type is enum or set, otherwise null.
+     * @returns {string[] | null}
+     */
+    getEnumValues() {
+        const match = this.columnType.match(/^(enum|set)\((.*)\)$/i);
+        if (!match) return null;
+        // Extract quoted values
+        const values = match[2].split(',').map(v => v.trim().slice(1, -1));
+        return values;
+    }
 }

@@ -36,6 +36,19 @@ export class MySQLDatabase {
     }
 
     /**
+     * Load index statistics for all tables in the database.
+     * @param {IndexStatisticsRaw[]} indexesStats - Array from INFORMATION_SCHEMA.STATISTICS
+     */
+    loadIndexStatistics(indexesStats) {
+        for (const idxStat of indexesStats) {
+            const table = this.tables.get(idxStat.TABLE_NAME);
+            if (table) {
+                table.addIndexStatistics(idxStat);
+            }
+        }
+    }
+
+    /**
      * Adds a table to the database.
      * @param {MySQLTable} table - The table to add.
      */

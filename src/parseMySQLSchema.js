@@ -15,3 +15,12 @@ export function parseMySQLSchema(schema) {
     const databaseName = schema[0].TABLE_SCHEMA;
     return new MySQLDatabase(databaseName, schema);
 }
+
+/**
+ * Enrich a MySQLDatabase object with index statistics.
+ * @param {MySQLDatabase} db - Database object to enrich
+ * @param {IndexStatisticsRaw[]} indexes - Array from INFORMATION_SCHEMA.STATISTICS
+ */
+export function enrichWithStatistics(db, indexes) {
+    db.loadIndexStatistics(indexes);
+}

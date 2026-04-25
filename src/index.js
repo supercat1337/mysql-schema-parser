@@ -6,7 +6,12 @@ export { MySQLTable } from './MySQLTable.js';
 export { MySQLTableColumn } from './MySQLTableColumn.js';
 
 // Export utilities
-export { assertColumnMetadataRaw, escapeString, formatDefaultValue } from './utils.js';
+export {
+    assertColumnMetadataRaw,
+    assertIndexStatisticsRaw,
+    escapeString,
+    formatDefaultValue,
+} from './utils.js';
 
-// Export main parser function
-export { parseMySQLSchema } from './parseMySQLSchema.js';
+// Export main parser function and new enrichment
+export { parseMySQLSchema, enrichWithStatistics } from './parseMySQLSchema.js';

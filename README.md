@@ -34,55 +34,58 @@ console.log(db);
 
 Parses MySQL schema metadata into a structured `MySQLDatabase` object.
 
+#### `enrichWithStatistics(db: MySQLDatabase, indexes: IndexStatisticsRaw[]): void`
+
+Adds index statistics (from `INFORMATION_SCHEMA.STATISTICS`) to an existing `MySQLDatabase` object.  
+Enables advanced index analysis and improved `CREATE TABLE` generation (composite keys, FULLTEXT, SPATIAL, etc.).
+
 ### Classes
 
 #### `MySQLDatabase`
 
-Represents a MySQL database with its tables.
-
-- **Properties**:
-    - `databaseName: string` - Name of the database
-    - `tables: Map<string, MySQLTable>` - Map of tables in the database
-
-- **Methods**:
-    - `addTable(table: MySQLTable): void` - Adds a table to the database
+- ... (existing methods)
+- `loadIndexStatistics(indexesStats: IndexStatisticsRaw[]): void` – internal, used by `enrichWithStatistics`.
 
 #### `MySQLTable`
 
-Represents a MySQL table with its columns.
-
-- **Properties**:
-    - `tableName: string` - Name of the table
-    - `columns: Map<string, MySQLTableColumn>` - Map of columns in the table
-
-- **Methods**:
-    - `addColumn(column: MySQLTableColumn): void` - Adds a column to the table
-    - `getColumns(): MySQLTableColumn[]` - Returns all columns in the table
-    - `getColumn(columnName: string): MySQLTableColumn | null` - Gets a column by name
-    - `generateCreateTableQuery(options): string` - Generates CREATE TABLE SQL statement
+- ... (existing methods)
+- `addIndexStatistics(idxRaw: IndexStatisticsRaw): void` – adds index info.
+- `getIndexes(): Map<string, IndexStatistics[]>` – returns all indexes.
+- `getIndex(indexName: string): IndexStatistics[] | null` – returns index columns.
+- `getIndexCardinality(indexName: string): number | null` – returns cardinality.
+- `getPrimaryKey(): string[] | null` – returns an array of primary key column names (ordered) or null if none.
 
 #### `MySQLTableColumn`
 
-Represents a column in a MySQL table.
-
-- **Properties**: All properties from `ColumnMetadataParams` type
-- **Methods**:
-    - `importFromRawData(rawMetadata: ColumnMetadataRaw): void` - Imports raw metadata
-    - `isPrimaryKey(): boolean` - Checks if column is a primary key
-    - `allowsNull(): boolean` - Checks if column allows NULL values
-    - `isAutoIncrement(): boolean` - Checks if column auto-increments
-    - `getColumnDefinition(): string` - Gets full column definition
-    - `toJSON(): ColumnMetadataParams` - Returns JSON representation
+- ... (unchanged)
 
 ### Types
 
-#### `ColumnMetadataRaw`
+- `IndexStatisticsRaw` – raw index metadata from `INFORMATION_SCHEMA.STATISTICS`.
+- `IndexStatistics` – normalized camelCase version.
 
-Raw MySQL column metadata in snake_case format (direct from INFORMATION_SCHEMA).
+## Example with Statistics
 
-#### `ColumnMetadataParams`
+```javascript
+import { parseMySQLSchema, enrichWithStatistics } from '@supercat1337/mysql-schema-parser';
 
-Normalized column metadata in camelCase format.
+const columns = await db.query(
+    `SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'mydb'`
+);
+const dbSchema = parseMySQLSchema(columns);
+
+const indexes = await db.query(
+    `SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = 'mydb'`
+);
+enrichWithStatistics(dbSchema, indexes);
+
+const usersTable = dbSchema.tables.get('users');
+console.log(usersTable.getPrimaryKey()); // '["id"]'
+console.log(usersTable.getIndexCardinality('idx_email')); // e.g. 15234
+
+// Generate CREATE TABLE with composite indexes and special types
+console.log(usersTable.generateCreateTableQuery());
+```
 
 ## Features
 
