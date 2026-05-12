@@ -126,9 +126,24 @@ export class MySQLTable {
      * @returns {string[] | null}
      */
     getPrimaryKey() {
-        const primary = this.indexStats.get('PRIMARY');
-        if (!primary || primary.length === 0) return null;
-        return primary.map(col => col.columnName);
+        const useIndexStats = this.indexStats.size > 0;
+        if (useIndexStats) {
+            const primary = this.indexStats.get('PRIMARY');
+            if (!primary || primary.length === 0) return null;
+            return primary.map(col => col.columnName);
+        }
+
+        /** @type {string[]} */
+        let primaryKeys = [];
+        let columns = this.getColumns();
+        for (const column of columns) {
+            if (column.isPrimaryKey()) {
+                primaryKeys.push(column.columnName);
+            }
+        }
+
+        if (primaryKeys.length === 0) return null;
+        return primaryKeys;
     }
 
     /**
